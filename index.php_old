@@ -1,19 +1,17 @@
 <?php
 include('settings.php');
 
-if(!isset($_ENV['SCRIPT_URL']) || $_ENV['SCRIPT_URL'] == '/' ){
-	//show the google map with universities on them
-	include_once("index_maps.php");
-	exit;
-	
+
+if(isset($_ENV['SCRIPT_URL'])){
+$script_url = $_ENV['SCRIPT_URL'];
+$id_notification_from_url_arr  	= explode('_', $script_url);
+$id_notification_from_url		=	$id_notification_from_url_arr[1];
 }else{
-	$script_url = $_ENV['SCRIPT_URL'];
-	$id_notification_from_url_arr  	= explode('_', $script_url);
-	$id_notification_from_url		=	$id_notification_from_url_arr[1];
+	//show the google map with universities on them
+	//include_once("index_maps.php");
 	
 }
 
-//print_r($id_notification_from_url_arr);
 
 $ad_header ='<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 				<!-- U1 -->
@@ -178,14 +176,13 @@ if (mysqli_connect_errno()) {
 	$errors[] = "Failed to connect to MySQL: " . mysqli_connect_error();
 }
 //print_r($con);
-//print_r($errors);
 //echo '\nselect * from notification n, university u where n.id_university = u.id_university order by id_notification desc limit 1';
 
 
 
 $r		=	mysqli_query($con, 'SELECT  * FROM notification n, university u 
 											WHERE n.id_university = u.id_university 
-													AND n.id_notification = '.$id_notification_from_url.' 
+													AND n.id_notification = 1 
 											ORDER BY id_notification DESC 
 											LIMIT 1');
 $row 	= 	mysqli_fetch_assoc($r);
@@ -253,14 +250,20 @@ function curPageURL() {
 	return $pageURL;
 }
 
-?><!DOCTYPE html>
+?>
+<?xml version="1.0" encoding="iso-8859-1"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<link rel="stylesheet" type="text/css" href="blended_layout.css">
-<title>:: <?php echo $uname;?> :: Notifications</title>
-<meta name="description" content="Write some words to describe your html page">
+<title>Website for All University Notifications </title>
+<meta name="title" content="University Notification" />
+<meta name="author" content="Administrator" />
+<meta name="description" content="Osmania Unversity Notification, Aligarh Univerisy Notification, Unviversity of Calicut Notification, Bangalore University Notification, Delhi University Notification " />
+<meta name="keywords" content="calicut university,universities in Andhra, Universities in Karnata, Universities in Kerala, Universities in Tamilnadu, College Notification, Manipal University Notification, Indira Gandhi Open Univesity Notificaiton" />
+<meta name="Generator" content="- Copyright (C) 2012 - 2014 Open Source Matters. All rights reserved." />
+<meta name="robots" content="index, follow" />
 </head>
 <body>
+
 <div class="blended_grid">
 
 	<div class="pageHeader">
@@ -282,15 +285,17 @@ function curPageURL() {
 	<center>
 		(<u style="background-color:yellow" >NOTIFICATION DETAILS</u>)
 	<br>
+	<br>
 		<img src="/ulogos/<?php echo $ulogo;?>" alt="University Logo">
 		<h1><?php echo $uname;?></h1>
 		<h4><a href="<?php echo $usites;?>"  alt="<?php echo $uname;?>" target="_new"><?php echo $usites;?></a></h4>
 	</center>
 	
+	
 	<table border="1" width="100%" style="border:1 none">
 		<tr><td width="20%">Course</td>			<td><?php echo $course; ?></td>	</tr>
 		<tr><td>Title</td>			<td><?php echo $title; ?></td>	</tr>
-		<tr><td colspan="2">Description<br>	<center><?php echo $ad_other_notifications; ?></center><br><?php echo $description1; ?><br><br><center><?php echo $ad_content_middle; ?></center><br><br><?php echo $description2; ?></td>	</tr>
+		<tr><td colspan="2">Description<br><?php echo $description1; ?><br><br><center><?php echo $ad_content_middle; ?></center><br><br><?php echo $description2; ?></td>	</tr>
 		<tr><td>University Link</td><td><a href='<?php echo $reference_link; ?>'>Link</a></td>	</tr>
 		<tr><td colspan="2"><center><a href='<?php echo $attachment_link; ?>'>Download Full Notification</a></center></tr>	
 	</table>

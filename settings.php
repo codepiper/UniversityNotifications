@@ -5,5 +5,5 @@ $database	= "u";
 $username ="webadmin";
 $password ="webadmin321";
 
-$username ="root";
-$password ="";
+// $username ="root";
+// $password ="";
