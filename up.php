@@ -1,5 +1,5 @@
 <?php
-include('mysql.php');
+include('settings.php');
 /*
  UserCake Version: 2.0.2
 http://usercake.com
@@ -69,7 +69,8 @@ echo "<pre>";
 
 			function clean($string) {
 				$string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
-				return preg_replace('/[^A-Za-z0-9\-\_]/', '', $string); // Removes special chars.
+				$return =  preg_replace('/[^A-Za-z0-9\-\_]/', '', $string); // Removes special chars.
+				return $return;
 			}
 						
 			
@@ -124,9 +125,9 @@ echo "<pre>";
 			$r		=	mysqli_query($con, "select * from notification n, university u where n.id_university = u.id_university and n.id_notification =$id_notification order by id_notification desc limit 1");
 			$row 	= 	mysqli_fetch_assoc($r);
 			$filename 	=	$row['name']."_".$row['id_notification']."_".$row['state']."_".$title;
-			$filename 	= 	clean($filename).".php";
-			//echo 'UPDATE notification SET seo_filename = '.mysql_real_escape_string($filename).' where id_notification = '.$id_notification;
-			mysqli_query($con, 'UPDATE notification SET seo_filename = \''.mysql_real_escape_string($filename).'\' where id_notification = '.$id_notification);
+			$filename 	= 	clean($filename);
+			//echo 'UPDATE notification SET seo_filename = '.mysqli_real_escape_string($con, $filename).' where id_notification = '.$id_notification;
+			mysqli_query($con, 'UPDATE notification SET seo_filename = \''.mysqli_real_escape_string($con, $filename).'\' where id_notification = '.$id_notification);
 				
 			
 			

@@ -1,16 +1,29 @@
 <?php
-include('settings.php');
+include_once("settings.php");
+$con=mysqli_connect($host,$username,$password,$database);
+// Check connection
+if (mysqli_connect_errno()) {
+	$errors[] = "Failed to connect to MySQL: " . mysqli_connect_error();
+}
 
-if(!isset($_ENV['SCRIPT_URL']) || $_ENV['SCRIPT_URL'] == '/' ){
-	//show the google map with universities on them
-	include_once("index_maps.php");
-	exit;
-	
+$tm=time();
+$ref=@$_SERVER['HTTP_REFERER'];;
+$agent=@$_SERVER['HTTP_USER_AGENT'];
+$ip=@$_SERVER['REMOTE_ADDR'];
+$tracking_page_name=@$_SERVER['REQUEST_URI'];
+$strSQL = "INSERT INTO track(tm, ref, agent, ip, tracking_page_name) VALUES ('$tm','$ref','$agent','$ip','$tracking_page_name')";
+$test=mysqli_query($con, $strSQL);
+
+
+if(!isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] == '/' ){
+ 	//show the google map with universities on them
+ 	include_once("index_maps.php");
+ 	exit;
 }else{
-	$script_url = $_ENV['SCRIPT_URL'];
+	$script_url = $_REQUEST['url'];
+	$id_notification_from_url_arr  	= explode('_', $script_url);
 	$id_notification_from_url_arr  	= explode('_', $script_url);
 	$id_notification_from_url		=	$id_notification_from_url_arr[1];
-	
 }
 
 //print_r($id_notification_from_url_arr);
@@ -172,22 +185,31 @@ Database Tables Required
 
 */
 
-$con=mysqli_connect($host,$username,$password,$database);
-// Check connection
-if (mysqli_connect_errno()) {
-	$errors[] = "Failed to connect to MySQL: " . mysqli_connect_error();
-}
+
 //print_r($con);
 //print_r($errors);
 //echo '\nselect * from notification n, university u where n.id_university = u.id_university order by id_notification desc limit 1';
 
 
 
-$r		=	mysqli_query($con, 'SELECT  * FROM notification n, university u 
-											WHERE n.id_university = u.id_university 
-													AND n.id_notification = '.$id_notification_from_url.' 
-											ORDER BY id_notification DESC 
-											LIMIT 1');
+if($id_notification_from_url == 'HomePage'){
+	// show notification as per UNIVERSITY ID
+	$id_notification_from_url		=	$id_notification_from_url_arr[2];
+	$qr = 'SELECT  * FROM notification n, university u
+											WHERE n.id_university = u.id_university
+													AND n.id_university = '.$id_notification_from_url.'
+											ORDER BY id_notification DESC
+											LIMIT 1';
+}else{
+	// show notification as per NOTIFICATION ID
+	$qr = 'SELECT  * FROM notification n, university u
+											WHERE n.id_university = u.id_university
+													AND n.id_notification = '.$id_notification_from_url.'
+											ORDER BY id_notification DESC
+											LIMIT 1';
+}
+// echo $qr;
+$r		=	mysqli_query($con, $qr);
 $row 	= 	mysqli_fetch_assoc($r);
 //print_r($row);
 $ulogo 	= 	$row['logo'];
@@ -200,6 +222,7 @@ $description1	=	$row['description1'];
 $description2	=	$row['description2'];
 $reference_link	=	$row['reference_link'];
 $attachment_link	=	$row['attachment_link'];
+$id_university	=	$row['id_university'];
 /*
   
  Array ( [id_notification] => 1 
@@ -230,7 +253,14 @@ $attachment_link	=	$row['attachment_link'];
 
 
 $other_notifications	=	" No Other notifications available from this University ";
-$on_query = "select seo_filename, title, course from notification WHERE id_notification NOT IN (1) order by id_notification LIMIT 0, 20";
+
+$on_query = 			"SELECT seo_filename, title, course 
+						FROM notification  
+						WHERE id_notification NOT IN  ($id_notification_from_url) AND id_university = $id_university 
+								 order by id_notification desc
+						LIMIT 0, 20";
+
+
 $r		=	mysqli_query($con, $on_query);
 if($r){
 	if(mysqli_num_rows($r)){
@@ -257,8 +287,12 @@ function curPageURL() {
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <link rel="stylesheet" type="text/css" href="blended_layout.css">
-<title>:: <?php echo $uname;?> :: Notifications</title>
-<meta name="description" content="Write some words to describe your html page">
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<title><?php echo $uname;?> :: Notifications :: Admissions :: Results :: Contact Details :: Courses </title>
+<meta name="description" content="<?php echo $uname;?> :: Notifications :: Admissions :: Results :: Contact Details :: Courses.">
+<meta name="keywords" content="<?php echo $uname;?> Notifications, <?php echo $uname;?> Admissions, <?php echo $uname;?> Results, <?php echo $uname;?> Contact Details, <?php echo $uname;?> Courses, <?php echo $uname;?> Address.">
+<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 </head>
 <body>
 <div class="blended_grid">
@@ -273,7 +307,7 @@ function curPageURL() {
 	</div>
 	
 	<div class="pageHeaderSub">
-		<center><?php echo $ad_sub_header; ?></center>
+		<a href="/"><img src='university_results_fee_exams_notifications_courses.gif'></a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <?php echo $ad_sub_header; ?>
 	</div>
 
 
@@ -282,7 +316,7 @@ function curPageURL() {
 	<center>
 		(<u style="background-color:yellow" >NOTIFICATION DETAILS</u>)
 	<br>
-		<img src="/ulogos/<?php echo $ulogo;?>" alt="University Logo">
+		<img src="/ulogos/<?php echo $ulogo;?>" alt="<?php echo $uname;?> Logo">
 		<h1><?php echo $uname;?></h1>
 		<h4><a href="<?php echo $usites;?>"  alt="<?php echo $uname;?>" target="_new"><?php echo $usites;?></a></h4>
 	</center>
@@ -306,9 +340,12 @@ function curPageURL() {
 		<center><?php echo $ad_other_notifications; ?></center>
 	</div>
 	<div class="pageFooterSub">
-		Study Materials
+		Study Materials<br>
+		<center><a href="http://checkpagerank.net/" title="PageRank Checker" target="_blank"><img src="http://checkpagerank.net/pricon.php?key=a3f8ea4781f351a7d625165fdcb17aff&t=0" width="70" height="20" alt="Check PageRank" /></a></center>
 	</div>
-</div>
+
+	
+	</div>
 <!--------------------- GOOGLE TRACKING CODE ------------------>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -323,6 +360,8 @@ function curPageURL() {
 var infolinks_pid = 2207260;
 var infolinks_wsid = 0;
 </script>
+
+
 <script type="text/javascript" src="http://resources.infolinks.com/js/infolinks_main.js"></script>
 <!--------------------- GOOGLE TRACKING CODE ------------------>
 </body>
